@@ -1,6 +1,8 @@
 package widget
 
 import (
+	"fmt"
+
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -11,6 +13,7 @@ import (
 type Label struct {
 	rect     sdl.Rect
 	texture  *sdl.Texture
+	parent   IWidget
 	children []IWidget
 }
 
@@ -30,13 +33,29 @@ func CreateLabel(renderer *sdl.Renderer, rect sdl.Rect, text string, color sdl.C
 	return &Label{
 		rect,
 		texture,
+		nil,
 		make([]IWidget, 0),
 	}, nil
+}
+
+//GetRect function
+func (label *Label) GetRect() sdl.Rect {
+	return label.rect
 }
 
 //Contains function
 func (label *Label) Contains(x int32, y int32) bool {
 	return !(x < label.rect.X || x >= label.rect.X+label.rect.W || y < label.rect.Y || y >= label.rect.Y+label.rect.H)
+}
+
+//SetParent function
+func (label *Label) SetParent(parent IWidget) {
+	label.parent = parent
+}
+
+//GetParent function
+func (label *Label) GetParent() IWidget {
+	return label.parent
 }
 
 //GetChildren function
@@ -46,6 +65,7 @@ func (label *Label) GetChildren() []IWidget {
 
 //AddChild function
 func (label *Label) AddChild(child IWidget) {
+	child.SetParent(label)
 	label.children = append(label.children, child)
 }
 
@@ -75,7 +95,17 @@ func (label *Label) OnClick() {
 
 //Draw function. Draws children after itself, to ensure they're draw on top.
 func (label *Label) Draw(renderer *sdl.Renderer) {
-	renderer.Copy(label.texture, nil, &label.rect)
+	//Child positions are relative to parent
+	offset := label.GetRect()
+
+	//Sum up offsets
+	for parent := label.GetParent(); parent != nil; parent = parent.GetParent() {
+		parentRect := parent.GetRect()
+		offset.X += parentRect.X
+		offset.Y += parentRect.Y
+	}
+	fmt.Println(offset)
+	renderer.Copy(label.texture, nil, &offset)
 
 	for i := range label.children {
 		label.children[i].Draw(renderer)

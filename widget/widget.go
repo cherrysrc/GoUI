@@ -6,7 +6,11 @@ import "github.com/veandco/go-sdl2/sdl"
 
 //IWidget interface
 type IWidget interface {
+	GetRect() sdl.Rect
 	Contains(int32, int32) bool
+
+	SetParent(IWidget)
+	GetParent() IWidget
 
 	GetChildren() []IWidget
 	AddChild(IWidget)
