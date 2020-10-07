@@ -6,6 +6,7 @@ import (
 	"github.com/cherrysrc/GoUI/widget"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 func main() {
@@ -19,14 +20,27 @@ func main() {
 		panic(err)
 	}
 
+	err = ttf.Init()
+	if err != nil {
+		panic(err)
+	}
+
+	font, err := ttf.OpenFont("res/JetBrainsMono-Regular.ttf", 50)
+	if err != nil {
+		panic(err)
+	}
+
 	baseTex, err := img.LoadTexture(renderer, "res/metalPanel.png")
 	if err != nil {
 		panic(err)
 	}
 
-	panel := widget.CreatePanel(sdl.Rect{10, 10, 200, 200}, baseTex)
-	cPanel := widget.CreatePanel(sdl.Rect{20, 20, 100, 100}, baseTex)
-	panel.AddChild(cPanel)
+	basePanel := widget.CreatePanel(sdl.Rect{10, 10, 200, 200}, baseTex)
+	bLabel, err := widget.CreateLabel(renderer, sdl.Rect{10, 10, 200, 100}, "Labelo", sdl.Color{255, 255, 255, 255}, font)
+	if err != nil {
+		panic(err)
+	}
+	basePanel.AddChild(bLabel)
 
 	mObserver := event.NewMouseObserver()
 
@@ -42,15 +56,17 @@ func main() {
 
 		if event, eventHappened := mObserver.Update(); eventHappened {
 			if event == 1 {
-				panel.ClickEvent(mObserver.MousePosition())
+				basePanel.ClickEvent(mObserver.MousePosition())
 			}
 		}
 
 		renderer.SetDrawColor(50, 50, 50, 255)
 		renderer.Clear()
 
-		panel.Draw(renderer)
+		basePanel.Draw(renderer)
 
 		renderer.Present()
 	}
+
+	ttf.Quit()
 }
