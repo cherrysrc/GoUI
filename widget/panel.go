@@ -1,8 +1,6 @@
 package widget
 
 import (
-	"fmt"
-
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -95,7 +93,7 @@ func (panel *Panel) Draw(renderer *sdl.Renderer) {
 		offset.X += parentRect.X
 		offset.Y += parentRect.Y
 	}
-	fmt.Println(offset)
+
 	renderer.Copy(panel.texture, nil, &offset)
 
 	for i := range panel.children {

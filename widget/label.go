@@ -1,8 +1,6 @@
 package widget
 
 import (
-	"fmt"
-
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -104,7 +102,7 @@ func (label *Label) Draw(renderer *sdl.Renderer) {
 		offset.X += parentRect.X
 		offset.Y += parentRect.Y
 	}
-	fmt.Println(offset)
+
 	renderer.Copy(label.texture, nil, &offset)
 
 	for i := range label.children {

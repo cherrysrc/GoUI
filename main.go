@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/cherrysrc/GoUI/event"
 
 	"github.com/cherrysrc/GoUI/widget"
@@ -25,7 +27,7 @@ func main() {
 		panic(err)
 	}
 
-	font, err := ttf.OpenFont("res/JetBrainsMono-Regular.ttf", 50)
+	font, err := ttf.OpenFont("res/JetBrainsMono-Regular.ttf", 128)
 	if err != nil {
 		panic(err)
 	}
@@ -36,11 +38,20 @@ func main() {
 	}
 
 	basePanel := widget.CreatePanel(sdl.Rect{10, 10, 200, 200}, baseTex)
-	bLabel, err := widget.CreateLabel(renderer, sdl.Rect{10, 10, 200, 100}, "Labelo", sdl.Color{255, 255, 255, 255}, font)
+	bLabel, err := widget.CreateLabel(renderer, sdl.Rect{10, 10, 180, 70}, "Labelo", sdl.Color{0, 0, 0, 255}, font)
 	if err != nil {
 		panic(err)
 	}
+
+	bButton, err := widget.CreateButton(renderer, sdl.Rect{10, 75, 180, 70}, baseTex, "Buttono", sdl.Color{0, 0, 0, 255}, font, func() {
+		fmt.Println("Button Pressed")
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	basePanel.AddChild(bLabel)
+	basePanel.AddChild(bButton)
 
 	mObserver := event.NewMouseObserver()
 
