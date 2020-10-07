@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/cherrysrc/GoUI/event"
 
 	"github.com/cherrysrc/GoUI/widget"
@@ -43,7 +41,9 @@ func main() {
 		}
 
 		if event, eventHappened := mObserver.Update(); eventHappened {
-			fmt.Println(event)
+			if event == 1 {
+				panel.ClickEvent(mObserver.MousePosition())
+			}
 		}
 
 		renderer.SetDrawColor(50, 50, 50, 255)

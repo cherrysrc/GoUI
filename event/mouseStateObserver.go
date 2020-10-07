@@ -20,6 +20,11 @@ func NewMouseObserver() *MouseStateObserver {
 	}
 }
 
+//MousePosition function
+func (observer *MouseStateObserver) MousePosition() (int32, int32) {
+	return observer.mx, observer.my
+}
+
 //Update function
 func (observer *MouseStateObserver) Update() (uint32, bool) {
 	observer.previousMs = observer.ms
