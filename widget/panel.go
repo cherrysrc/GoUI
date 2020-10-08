@@ -76,15 +76,18 @@ func (panel *Panel) AddChild(child IWidget) {
 //ClickEvent function. Checks children first, since they're drawn on top of the parent.
 func (panel *Panel) ClickEvent(mx int32, my int32) bool {
 	for i := range panel.children {
-		if panel.children[i].Contains(mx, my) && panel.children[i].IsClickable() {
-			return panel.children[i].ClickEvent(mx, my)
+		if panel.children[i].Contains(mx, my) {
+			if panel.children[i].ClickEvent(mx, my) {
+				return true
+			}
 		}
 	}
 
 	if panel.Contains(mx, my) && panel.IsClickable() {
 		panel.OnClick()
+		return true
 	}
-	return true
+	return false
 }
 
 //IsClickable function

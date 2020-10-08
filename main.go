@@ -37,21 +37,26 @@ func main() {
 		panic(err)
 	}
 
-	basePanel := widget.CreatePanel(sdl.Rect{10, 10, 200, 200}, baseTex)
-	bLabel, err := widget.CreateLabel(renderer, sdl.Rect{10, 10, 180, 70}, "Labelo", sdl.Color{0, 0, 0, 255}, font)
-	if err != nil {
+	basePanel := widget.CreatePanel(sdl.Rect{10, 10, 780, 580}, baseTex)
+	leftPanel := widget.CreatePanel(sdl.Rect{0, 50, 780 / 2, 550 - 20}, baseTex)
+	rightPanel := widget.CreatePanel(sdl.Rect{780 / 2, 50, 780 / 2, 550 - 20}, baseTex)
+
+	var button01 *widget.Button
+	if button01, err = widget.CreateButton(renderer, sdl.Rect{10, 10, 780/2 - 20, 50}, baseTex, "Button 01", sdl.Color{0, 0, 0, 255}, font, func() {
+		fmt.Println("PRESSED")
+	}); err != nil {
 		panic(err)
 	}
 
-	bButton, err := widget.CreateButton(renderer, sdl.Rect{10, 75, 180, 70}, baseTex, "Buttono", sdl.Color{0, 0, 0, 255}, font, func() {
-		fmt.Println("Button Pressed")
-	})
-	if err != nil {
+	var titleLabel *widget.Label
+	if titleLabel, err = widget.CreateLabel(renderer, sdl.Rect{400 - 50, 0, 100, 50}, "Title", sdl.Color{0, 0, 0, 255}, font); err != nil {
 		panic(err)
 	}
 
-	basePanel.AddChild(bLabel)
-	basePanel.AddChild(bButton)
+	basePanel.AddChild(leftPanel)
+	basePanel.AddChild(rightPanel)
+	basePanel.AddChild(titleLabel)
+	leftPanel.AddChild(button01)
 
 	mObserver := event.NewMouseObserver()
 

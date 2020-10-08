@@ -85,15 +85,18 @@ func (label *Label) AddChild(child IWidget) {
 //ClickEvent function. Checks children first, since they're drawn on top of the parent.
 func (label *Label) ClickEvent(mx int32, my int32) bool {
 	for i := range label.children {
-		if label.children[i].Contains(mx, my) && label.children[i].IsClickable() {
-			return label.children[i].ClickEvent(mx, my)
+		if label.children[i].Contains(mx, my) {
+			if label.children[i].ClickEvent(mx, my) {
+				return true
+			}
 		}
 	}
 
 	if label.Contains(mx, my) && label.IsClickable() {
 		label.OnClick()
+		return true
 	}
-	return true
+	return false
 }
 
 //IsClickable function
