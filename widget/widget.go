@@ -3,11 +3,13 @@ package widget
 import "github.com/veandco/go-sdl2/sdl"
 
 //TODO proper docs
+//TODO encapsulation
 
 //IWidget interface
 type IWidget interface {
 	GetRect() sdl.Rect
 	Contains(int32, int32) bool
+	GetAbsPosition() sdl.Rect
 
 	SetParent(IWidget)
 	GetParent() IWidget

@@ -34,7 +34,22 @@ func (panel *Panel) GetRect() sdl.Rect {
 
 //Contains function
 func (panel *Panel) Contains(x int32, y int32) bool {
-	return !(x < panel.rect.X || x >= panel.rect.X+panel.rect.W || y < panel.rect.Y || y >= panel.rect.Y+panel.rect.H)
+	absRect := panel.GetAbsPosition()
+	return !(x < absRect.X || x >= absRect.X+absRect.W || y < absRect.Y || y >= absRect.Y+absRect.H)
+}
+
+//GetAbsPosition function
+func (panel *Panel) GetAbsPosition() sdl.Rect {
+	offset := panel.GetRect()
+
+	//Sum up offsets
+	for parent := panel.GetParent(); parent != nil; parent = parent.GetParent() {
+		parentRect := parent.GetRect()
+		offset.X += parentRect.X
+		offset.Y += parentRect.Y
+	}
+
+	return offset
 }
 
 //SetParent function

@@ -43,7 +43,22 @@ func (label *Label) GetRect() sdl.Rect {
 
 //Contains function
 func (label *Label) Contains(x int32, y int32) bool {
-	return !(x < label.rect.X || x >= label.rect.X+label.rect.W || y < label.rect.Y || y >= label.rect.Y+label.rect.H)
+	absRect := label.GetAbsPosition()
+	return !(x < absRect.X || x >= absRect.X+absRect.W || y < absRect.Y || y >= absRect.Y+absRect.H)
+}
+
+//GetAbsPosition function
+func (label *Label) GetAbsPosition() sdl.Rect {
+	offset := label.GetRect()
+
+	//Sum up offsets
+	for parent := label.GetParent(); parent != nil; parent = parent.GetParent() {
+		parentRect := parent.GetRect()
+		offset.X += parentRect.X
+		offset.Y += parentRect.Y
+	}
+
+	return offset
 }
 
 //SetParent function

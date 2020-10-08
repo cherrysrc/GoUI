@@ -47,7 +47,22 @@ func (button *Button) GetRect() sdl.Rect {
 
 //Contains function
 func (button *Button) Contains(x int32, y int32) bool {
-	return !(x < button.rect.X || x >= button.rect.X+button.rect.W || y < button.rect.Y || y >= button.rect.Y+button.rect.H)
+	absRect := button.GetAbsPosition()
+	return !(x < absRect.X || x >= absRect.X+absRect.W || y < absRect.Y || y >= absRect.Y+absRect.H)
+}
+
+//GetAbsPosition function
+func (button *Button) GetAbsPosition() sdl.Rect {
+	offset := button.GetRect()
+
+	//Sum up offsets
+	for parent := button.GetParent(); parent != nil; parent = parent.GetParent() {
+		parentRect := parent.GetRect()
+		offset.X += parentRect.X
+		offset.Y += parentRect.Y
+	}
+
+	return offset
 }
 
 //SetParent function
@@ -99,14 +114,7 @@ func (button *Button) OnClick() {
 //Draw function. Draws children after itself, to ensure they're draw on top.
 func (button *Button) Draw(renderer *sdl.Renderer) {
 	//Child positions are relative to parent
-	offset := button.GetRect()
-
-	//Sum up offsets
-	for parent := button.GetParent(); parent != nil; parent = parent.GetParent() {
-		parentRect := parent.GetRect()
-		offset.X += parentRect.X
-		offset.Y += parentRect.Y
-	}
+	offset := button.GetAbsPosition()
 
 	renderer.Copy(button.baseTexture, nil, &offset)
 	renderer.Copy(button.textTexture, nil, &offset)
