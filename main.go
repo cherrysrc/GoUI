@@ -6,7 +6,6 @@ import (
 	"github.com/cherrysrc/GoUI/event"
 	"github.com/cherrysrc/GoUI/widget"
 
-	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -27,36 +26,7 @@ func main() {
 		panic(err)
 	}
 
-	font, err := ttf.OpenFont("res/JetBrainsMono-Regular.ttf", 128)
-	if err != nil {
-		panic(err)
-	}
-
-	baseTex, err := img.LoadTexture(renderer, "res/metalPanel.png")
-	if err != nil {
-		panic(err)
-	}
-
-	basePanel := widget.CreatePanel(sdl.Rect{10, 10, 780, 580}, baseTex)
-	leftPanel := widget.CreatePanel(sdl.Rect{0, 50, 780 / 2, 550 - 20}, baseTex)
-	rightPanel := widget.CreatePanel(sdl.Rect{780 / 2, 50, 780 / 2, 550 - 20}, baseTex)
-
-	var button01 *widget.Button
-	if button01, err = widget.CreateButton(renderer, sdl.Rect{10, 10, 780/2 - 20, 50}, baseTex, "Button 01", sdl.Color{0, 0, 0, 255}, font, func() {
-		fmt.Println("PRESSED")
-	}); err != nil {
-		panic(err)
-	}
-
-	var titleLabel *widget.Label
-	if titleLabel, err = widget.CreateLabel(renderer, sdl.Rect{400 - 50, 0, 100, 50}, "Title", sdl.Color{0, 0, 0, 255}, font); err != nil {
-		panic(err)
-	}
-
-	basePanel.AddChild(leftPanel)
-	basePanel.AddChild(rightPanel)
-	basePanel.AddChild(titleLabel)
-	leftPanel.AddChild(button01)
+	basePanel := makeUI(renderer)
 
 	mObserver := event.NewMouseObserver()
 
@@ -85,4 +55,62 @@ func main() {
 	}
 
 	ttf.Quit()
+}
+
+func makeUI(renderer *sdl.Renderer) widget.IWidget {
+	font, err := ttf.OpenFont("res/JetBrainsMono-Regular.ttf", 128)
+	if err != nil {
+		panic(err)
+	}
+
+	textureSpecs := widget.TextureSpecs{
+		sdl.Color{225, 225, 255, 255},
+		sdl.Color{90, 90, 90, 64},
+	}
+
+	//----
+	//base panel
+	basePanelRect := sdl.Rect{10, 10, 780, 580}
+	bgeneratedTexture, err := widget.GenerateTexture(renderer, textureSpecs, int(basePanelRect.W), int(basePanelRect.H), 1)
+	if err != nil {
+		panic(err)
+	}
+	basePanel := widget.CreatePanel(basePanelRect, bgeneratedTexture)
+
+	//----
+	//Left Panel
+	leftPanelRect := sdl.Rect{10, 50, 780 / 2, 520}
+	lgeneratedTexture, err := widget.GenerateTexture(renderer, textureSpecs, int(leftPanelRect.W), int(leftPanelRect.H), 1)
+	if err != nil {
+		panic(err)
+	}
+	leftPanel := widget.CreatePanel(leftPanelRect, lgeneratedTexture)
+
+	//----
+	//Title label
+	labelRect := sdl.Rect{basePanelRect.W/2 - 100, 0, 200, 50}
+	titleLable, err := widget.CreateLabel(renderer, labelRect, "Title Here", sdl.Color{0, 0, 0, 255}, font)
+	if err != nil {
+		panic(err)
+	}
+
+	//----
+	//First button in left sub panel
+	buttonRect := sdl.Rect{10, 10, 780/2 - 20, 50}
+	buttonTexture, err := widget.GenerateTexture(renderer, textureSpecs, int(buttonRect.W), int(buttonRect.H), 1)
+	if err != nil {
+		panic(err)
+	}
+	button, err := widget.CreateButton(renderer, buttonRect, buttonTexture, "Button Sample", sdl.Color{0, 0, 0, 255}, font, func() {
+		fmt.Println("Button Pressed")
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	basePanel.AddChild(leftPanel)
+	basePanel.AddChild(titleLable)
+	leftPanel.AddChild(button)
+
+	return basePanel
 }
