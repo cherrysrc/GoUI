@@ -25,6 +25,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	sdl.StartTextInput()
 
 	basePanel := makeUI(renderer)
 
@@ -33,9 +34,32 @@ func main() {
 	running := true
 	for running {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch event.(type) {
-			case *sdl.QuitEvent:
+			switch event.GetType() {
+			case sdl.QUIT:
 				running = false
+				break
+			case sdl.KEYDOWN:
+				keydownEvent := event.(*sdl.KeyboardEvent)
+				if keydownEvent.Keysym.Sym == sdl.K_BACKSPACE {
+					if widget.SelectedTextArea != nil {
+						widget.SelectedTextArea.PopText()
+						err = widget.SelectedTextArea.RedrawText()
+						if err != nil {
+							panic(err)
+						}
+					}
+				}
+				break
+			case sdl.TEXTINPUT:
+				if widget.SelectedTextArea != nil {
+					widget.SelectedTextArea.AppendText(event.(*sdl.TextInputEvent).GetText())
+					err = widget.SelectedTextArea.RedrawText()
+					if err != nil {
+						panic(err)
+					}
+				}
+				break
+			case sdl.TEXTEDITING:
 				break
 			}
 		}
@@ -54,7 +78,9 @@ func main() {
 		renderer.Present()
 	}
 
+	sdl.StopTextInput()
 	ttf.Quit()
+	sdl.Quit()
 }
 
 func makeUI(renderer *sdl.Renderer) widget.IWidget {
@@ -65,7 +91,7 @@ func makeUI(renderer *sdl.Renderer) widget.IWidget {
 
 	textureSpecs := widget.TextureSpecs{
 		sdl.Color{225, 225, 255, 255},
-		sdl.Color{90, 90, 90, 64},
+		sdl.Color{90, 90, 90, 0},
 	}
 
 	//----
@@ -101,9 +127,19 @@ func makeUI(renderer *sdl.Renderer) widget.IWidget {
 	if err != nil {
 		panic(err)
 	}
-	button, err := widget.CreateButton(renderer, buttonRect, buttonTexture, "Button Sample", sdl.Color{0, 0, 0, 255}, font, func() {
+	button, err := widget.CreateButton(renderer, buttonRect, buttonTexture, "Button Here", sdl.Color{0, 0, 0, 255}, font, func() {
 		fmt.Println("Button Pressed")
 	})
+	if err != nil {
+		panic(err)
+	}
+
+	editRect := sdl.Rect{10, 70, 780/2 - 20, 200}
+	editTexture, err := widget.GenerateTexture(renderer, textureSpecs, int(editRect.W), int(editRect.H), 1)
+	if err != nil {
+		panic(err)
+	}
+	editWidget, err := widget.CreateTextArea(renderer, editRect, editTexture, "Tas", sdl.Color{0, 0, 0, 255}, font)
 	if err != nil {
 		panic(err)
 	}
@@ -111,6 +147,7 @@ func makeUI(renderer *sdl.Renderer) widget.IWidget {
 	basePanel.AddChild(leftPanel)
 	basePanel.AddChild(titleLable)
 	leftPanel.AddChild(button)
+	leftPanel.AddChild(editWidget)
 
 	return basePanel
 }
