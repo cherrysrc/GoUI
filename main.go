@@ -41,9 +41,9 @@ func main() {
 			case sdl.KEYDOWN:
 				keydownEvent := event.(*sdl.KeyboardEvent)
 				if keydownEvent.Keysym.Sym == sdl.K_BACKSPACE {
-					if widget.SelectedTextArea != nil {
-						widget.SelectedTextArea.PopText()
-						err = widget.SelectedTextArea.RedrawText()
+					if widget.SelectedSingleLineEdit != nil {
+						widget.SelectedSingleLineEdit.PopText()
+						err = widget.SelectedSingleLineEdit.RerenderText()
 						if err != nil {
 							panic(err)
 						}
@@ -51,9 +51,9 @@ func main() {
 				}
 				break
 			case sdl.TEXTINPUT:
-				if widget.SelectedTextArea != nil {
-					widget.SelectedTextArea.AppendText(event.(*sdl.TextInputEvent).GetText())
-					err = widget.SelectedTextArea.RedrawText()
+				if widget.SelectedSingleLineEdit != nil {
+					widget.SelectedSingleLineEdit.AppendText(event.(*sdl.TextInputEvent).GetText())
+					err = widget.SelectedSingleLineEdit.RerenderText()
 					if err != nil {
 						panic(err)
 					}
@@ -134,12 +134,12 @@ func makeUI(renderer *sdl.Renderer) widget.IWidget {
 		panic(err)
 	}
 
-	editRect := sdl.Rect{10, 70, 780/2 - 20, 200}
+	editRect := sdl.Rect{10, 70, 780/2 - 20, 50}
 	editTexture, err := widget.GenerateTexture(renderer, textureSpecs, int(editRect.W), int(editRect.H), 1)
 	if err != nil {
 		panic(err)
 	}
-	editWidget, err := widget.CreateTextArea(renderer, editRect, editTexture, "Tas", sdl.Color{0, 0, 0, 255}, font)
+	editWidget, err := widget.CreateSingleLineEdit(renderer, editRect, editTexture, "Example", 20, sdl.Color{0, 0, 0, 255}, font)
 	if err != nil {
 		panic(err)
 	}

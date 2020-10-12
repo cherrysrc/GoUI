@@ -7,11 +7,11 @@ import (
 
 //TODO proper docs
 
-//SelectedTextArea var
-var SelectedTextArea *TextArea
+//SelectedSingleLineEdit var
+var SelectedSingleLineEdit *SingleLineEdit
 
-//TextArea struct
-type TextArea struct {
+//SingleLineEdit struct
+type SingleLineEdit struct {
 	rect        sdl.Rect
 	baseTexture *sdl.Texture
 	textTexture *sdl.Texture
@@ -20,13 +20,15 @@ type TextArea struct {
 	font     *ttf.Font
 	color    sdl.Color
 
-	text     string
+	text      string
+	charWidth int
+
 	parent   IWidget
 	children []IWidget
 }
 
-//CreateTextArea function
-func CreateTextArea(renderer *sdl.Renderer, rect sdl.Rect, baseTexture *sdl.Texture, text string, color sdl.Color, font *ttf.Font) (*TextArea, error) {
+//CreateSingleLineEdit function
+func CreateSingleLineEdit(renderer *sdl.Renderer, rect sdl.Rect, baseTexture *sdl.Texture, text string, charWidth int, color sdl.Color, font *ttf.Font) (*SingleLineEdit, error) {
 	surface, err := font.RenderUTF8Solid(text, color)
 	if err != nil {
 		return nil, err
@@ -38,7 +40,7 @@ func CreateTextArea(renderer *sdl.Renderer, rect sdl.Rect, baseTexture *sdl.Text
 	}
 	surface.Free()
 
-	return &TextArea{
+	return &SingleLineEdit{
 		rect,
 		baseTexture,
 		texture,
@@ -46,24 +48,25 @@ func CreateTextArea(renderer *sdl.Renderer, rect sdl.Rect, baseTexture *sdl.Text
 		font,
 		color,
 		text,
+		charWidth,
 		nil,
 		make([]IWidget, 0),
 	}, err
 }
 
 //GetRect function
-func (ta *TextArea) GetRect() sdl.Rect {
+func (ta *SingleLineEdit) GetRect() sdl.Rect {
 	return ta.rect
 }
 
 //Contains function
-func (ta *TextArea) Contains(x int32, y int32) bool {
+func (ta *SingleLineEdit) Contains(x int32, y int32) bool {
 	absRect := ta.GetAbsPosition()
 	return !(x < absRect.X || x >= absRect.X+absRect.W || y < absRect.Y || y >= absRect.Y+absRect.H)
 }
 
 //GetAbsPosition function
-func (ta *TextArea) GetAbsPosition() sdl.Rect {
+func (ta *SingleLineEdit) GetAbsPosition() sdl.Rect {
 	offset := ta.GetRect()
 
 	//Sum up offsets
@@ -77,28 +80,28 @@ func (ta *TextArea) GetAbsPosition() sdl.Rect {
 }
 
 //SetParent function
-func (ta *TextArea) SetParent(parent IWidget) {
+func (ta *SingleLineEdit) SetParent(parent IWidget) {
 	ta.parent = parent
 }
 
 //GetParent function
-func (ta *TextArea) GetParent() IWidget {
+func (ta *SingleLineEdit) GetParent() IWidget {
 	return ta.parent
 }
 
 //GetChildren function
-func (ta *TextArea) GetChildren() []IWidget {
+func (ta *SingleLineEdit) GetChildren() []IWidget {
 	return ta.children
 }
 
 //AddChild function
-func (ta *TextArea) AddChild(child IWidget) {
+func (ta *SingleLineEdit) AddChild(child IWidget) {
 	child.SetParent(ta)
 	ta.children = append(ta.children, child)
 }
 
 //ClickEvent function. Checks children first, since they're drawn on top of the parent.
-func (ta *TextArea) ClickEvent(mx int32, my int32) bool {
+func (ta *SingleLineEdit) ClickEvent(mx int32, my int32) bool {
 	for i := range ta.children {
 		if ta.children[i].Contains(mx, my) {
 			if ta.children[i].ClickEvent(mx, my) {
@@ -115,22 +118,23 @@ func (ta *TextArea) ClickEvent(mx int32, my int32) bool {
 }
 
 //IsClickable function
-func (ta *TextArea) IsClickable() bool {
+func (ta *SingleLineEdit) IsClickable() bool {
 	return true
 }
 
 //OnClick function.
 //Should be empty, if IsClickable returns false, since it will never be called anyways
-func (ta *TextArea) OnClick() {
-	SelectedTextArea = ta
+func (ta *SingleLineEdit) OnClick() {
+	SelectedSingleLineEdit = ta
 }
 
 //Draw function. Draws children after itself, to ensure they're draw on top.
-func (ta *TextArea) Draw(renderer *sdl.Renderer) {
+func (ta *SingleLineEdit) Draw(renderer *sdl.Renderer) {
 	//Child positions are relative to parent
 	offset := ta.GetAbsPosition()
-
 	renderer.Copy(ta.baseTexture, nil, &offset)
+
+	offset.W = int32(len(ta.text) * ta.charWidth)
 	renderer.Copy(ta.textTexture, nil, &offset)
 
 	for i := range ta.children {
@@ -139,20 +143,24 @@ func (ta *TextArea) Draw(renderer *sdl.Renderer) {
 }
 
 //AppendText function
-func (ta *TextArea) AppendText(appendix string) {
+func (ta *SingleLineEdit) AppendText(appendix string) {
+	charLimit := int(ta.rect.W) / ta.charWidth
+	if len(ta.text) >= charLimit {
+		return
+	}
 	ta.text += appendix
-	ta.RedrawText()
+	ta.RerenderText()
 }
 
 //PopText function
-func (ta *TextArea) PopText() {
+func (ta *SingleLineEdit) PopText() {
 	if len(ta.text) > 0 {
 		ta.text = ta.text[:len(ta.text)-1]
 	}
 }
 
-//RedrawText function
-func (ta *TextArea) RedrawText() error {
+//RerenderText function
+func (ta *SingleLineEdit) RerenderText() error {
 	var renderString string
 	if len(ta.text) == 0 {
 		renderString = " "
