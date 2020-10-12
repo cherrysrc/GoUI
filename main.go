@@ -139,7 +139,12 @@ func makeUI(renderer *sdl.Renderer) widget.IWidget {
 	if err != nil {
 		panic(err)
 	}
-	editWidget, err := widget.CreateSingleLineEdit(renderer, editRect, editTexture, "Example", 20, sdl.Color{0, 0, 0, 255}, font)
+	editWidget, err := widget.CreateSingleLineEdit(renderer, editRect, editTexture, 20, sdl.Color{0, 0, 0, 255}, font)
+	if err != nil {
+		panic(err)
+	}
+	editRect2 := sdl.Rect{10, 130, 780/2 - 20, 50}
+	editWidget2, err := widget.CreateSingleLineEdit(renderer, editRect2, editTexture, 20, sdl.Color{0, 0, 0, 255}, font)
 	if err != nil {
 		panic(err)
 	}
@@ -148,6 +153,7 @@ func makeUI(renderer *sdl.Renderer) widget.IWidget {
 	basePanel.AddChild(titleLable)
 	leftPanel.AddChild(button)
 	leftPanel.AddChild(editWidget)
+	leftPanel.AddChild(editWidget2)
 
 	return basePanel
 }

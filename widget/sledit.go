@@ -6,6 +6,7 @@ import (
 )
 
 //TODO proper docs
+//TODO proper encapsulation
 
 //SelectedSingleLineEdit var
 var SelectedSingleLineEdit *SingleLineEdit
@@ -23,13 +24,17 @@ type SingleLineEdit struct {
 	text      string
 	charWidth int
 
+	caretPosition int
+	caretRect     sdl.Rect
+	caretTexture  *sdl.Texture
+
 	parent   IWidget
 	children []IWidget
 }
 
 //CreateSingleLineEdit function
-func CreateSingleLineEdit(renderer *sdl.Renderer, rect sdl.Rect, baseTexture *sdl.Texture, text string, charWidth int, color sdl.Color, font *ttf.Font) (*SingleLineEdit, error) {
-	surface, err := font.RenderUTF8Solid(text, color)
+func CreateSingleLineEdit(renderer *sdl.Renderer, rect sdl.Rect, baseTexture *sdl.Texture, charWidth int, color sdl.Color, font *ttf.Font) (*SingleLineEdit, error) {
+	surface, err := font.RenderUTF8Solid(" ", color)
 	if err != nil {
 		return nil, err
 	}
@@ -40,18 +45,23 @@ func CreateSingleLineEdit(renderer *sdl.Renderer, rect sdl.Rect, baseTexture *sd
 	}
 	surface.Free()
 
-	return &SingleLineEdit{
+	edit := &SingleLineEdit{
 		rect,
 		baseTexture,
 		texture,
 		renderer,
 		font,
 		color,
-		text,
+		"",
 		charWidth,
+		0,
+		sdl.Rect{},
+		nil,
 		nil,
 		make([]IWidget, 0),
-	}, err
+	}
+
+	return edit, nil
 }
 
 //GetRect function
@@ -82,6 +92,8 @@ func (ta *SingleLineEdit) GetAbsPosition() sdl.Rect {
 //SetParent function
 func (ta *SingleLineEdit) SetParent(parent IWidget) {
 	ta.parent = parent
+	ta.calculateCaretRect()
+	ta.generateCaretTexture()
 }
 
 //GetParent function
@@ -137,10 +149,17 @@ func (ta *SingleLineEdit) Draw(renderer *sdl.Renderer) {
 	offset.W = int32(len(ta.text) * ta.charWidth)
 	renderer.Copy(ta.textTexture, nil, &offset)
 
+	if SelectedSingleLineEdit == ta {
+		renderer.Copy(ta.caretTexture, nil, &ta.caretRect)
+	}
+
 	for i := range ta.children {
 		ta.children[i].Draw(renderer)
 	}
 }
+
+//---
+//SingleLineEdit only functions
 
 //AppendText function
 func (ta *SingleLineEdit) AppendText(appendix string) {
@@ -148,15 +167,58 @@ func (ta *SingleLineEdit) AppendText(appendix string) {
 	if len(ta.text) >= charLimit {
 		return
 	}
-	ta.text += appendix
-	ta.RerenderText()
+
+	ta.text = ta.text[:ta.caretPosition] + appendix + ta.text[ta.caretPosition:]
+	ta.caretPosition++
+	ta.calculateCaretRect()
 }
 
 //PopText function
 func (ta *SingleLineEdit) PopText() {
 	if len(ta.text) > 0 {
-		ta.text = ta.text[:len(ta.text)-1]
+		ta.text = ta.text[:ta.caretPosition-1] + ta.text[ta.caretPosition:]
+		ta.caretPosition--
+		ta.calculateCaretRect()
 	}
+}
+
+func (ta *SingleLineEdit) generateCaretTexture() error {
+	texture, err := ta.renderer.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_STATIC, int32(ta.caretRect.W), int32(ta.caretRect.H))
+	if err != nil {
+		return err
+	}
+
+	pixels := make([]uint8, ta.caretRect.W*ta.caretRect.H*4)
+	pixelIdx := 0
+
+	for y := 0; y < int(ta.caretRect.H); y++ {
+		for x := 0; x < int(ta.caretRect.W); x++ {
+			pixels[pixelIdx+0] = 128
+			pixels[pixelIdx+1] = 128
+			pixels[pixelIdx+2] = 128
+			pixels[pixelIdx+3] = 128
+			pixelIdx += 4
+		}
+	}
+
+	err = texture.Update(nil, pixels, int(ta.caretRect.W)*4)
+	if err != nil {
+		return err
+	}
+
+	ta.caretTexture = texture
+	return nil
+}
+
+func (ta *SingleLineEdit) calculateCaretRect() {
+	absPos := ta.GetAbsPosition()
+
+	x := absPos.X + int32(ta.caretPosition*ta.charWidth)
+	y := absPos.Y + 1
+	w := int32(ta.charWidth)
+	h := absPos.H - 2
+
+	ta.caretRect = sdl.Rect{X: x, Y: y, W: w, H: h}
 }
 
 //RerenderText function
