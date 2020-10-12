@@ -6,6 +6,7 @@ import (
 )
 
 //TODO proper docs
+//TODO proper encapsulation
 
 //Label struct
 type Label struct {

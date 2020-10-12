@@ -144,6 +144,7 @@ func makeUI(renderer *sdl.Renderer) widget.IWidget {
 		panic(err)
 	}
 	editRect2 := sdl.Rect{10, 130, 780/2 - 20, 50}
+	//nil to use no background texture
 	editWidget2, err := widget.CreateSingleLineEdit(renderer, editRect2, editTexture, 20, sdl.Color{0, 0, 0, 255}, font)
 	if err != nil {
 		panic(err)
@@ -154,6 +155,27 @@ func makeUI(renderer *sdl.Renderer) widget.IWidget {
 	leftPanel.AddChild(button)
 	leftPanel.AddChild(editWidget)
 	leftPanel.AddChild(editWidget2)
+
+	//----
+	//Right Panel
+	rightPanelRect := sdl.Rect{780/2 + 5, 50, 780/2 - 15, 520}
+	rTexture, err := widget.GenerateTexture(renderer, textureSpecs, int(rightPanelRect.W), int(rightPanelRect.H), 1)
+	if err != nil {
+		panic(err)
+	}
+	rightPanel := widget.CreatePanel(rightPanelRect, rTexture)
+
+	//----
+	//MultLineEdit
+	meEditRect := sdl.Rect{10, 10, 780/2 - 35, 500}
+	meTexture, err := widget.GenerateTexture(renderer, textureSpecs, int(rightPanelRect.W), int(rightPanelRect.H), 1)
+	if err != nil {
+		panic(err)
+	}
+	meEdit := widget.CreateMultiLineEdit(renderer, meTexture, meEditRect, 8, 20, sdl.Color{0, 0, 0, 255}, font)
+
+	basePanel.AddChild(rightPanel)
+	rightPanel.AddChild(meEdit)
 
 	return basePanel
 }

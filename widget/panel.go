@@ -5,6 +5,7 @@ import (
 )
 
 //TODO proper docs
+//TODO proper encapsulation
 
 //Panel struct
 type Panel struct {

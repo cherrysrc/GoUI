@@ -33,8 +33,8 @@ type SingleLineEdit struct {
 }
 
 //CreateSingleLineEdit function
-func CreateSingleLineEdit(renderer *sdl.Renderer, rect sdl.Rect, baseTexture *sdl.Texture, charWidth int, color sdl.Color, font *ttf.Font) (*SingleLineEdit, error) {
-	surface, err := font.RenderUTF8Solid(" ", color)
+func CreateSingleLineEdit(renderer *sdl.Renderer, rect sdl.Rect, baseTexture *sdl.Texture, charWidth int, textColor sdl.Color, font *ttf.Font) (*SingleLineEdit, error) {
+	surface, err := font.RenderUTF8Solid(" ", textColor)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func CreateSingleLineEdit(renderer *sdl.Renderer, rect sdl.Rect, baseTexture *sd
 		texture,
 		renderer,
 		font,
-		color,
+		textColor,
 		"",
 		charWidth,
 		0,
@@ -144,7 +144,10 @@ func (ta *SingleLineEdit) OnClick() {
 func (ta *SingleLineEdit) Draw(renderer *sdl.Renderer) {
 	//Child positions are relative to parent
 	offset := ta.GetAbsPosition()
-	renderer.Copy(ta.baseTexture, nil, &offset)
+
+	if ta.baseTexture != nil {
+		renderer.Copy(ta.baseTexture, nil, &offset)
+	}
 
 	offset.W = int32(len(ta.text) * ta.charWidth)
 	renderer.Copy(ta.textTexture, nil, &offset)

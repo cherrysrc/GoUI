@@ -6,6 +6,7 @@ import (
 )
 
 //TODO proper docs
+//TODO proper encapsulation
 
 //Button struct
 type Button struct {
