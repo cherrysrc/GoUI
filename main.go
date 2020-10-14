@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/cherrysrc/GoUI/event"
+	"github.com/cherrysrc/GoUI/ui"
+
 	"github.com/cherrysrc/GoUI/widget"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -27,53 +28,16 @@ func main() {
 	}
 	sdl.StartTextInput()
 
-	basePanel := makeUI(renderer)
-
-	mObserver := event.NewMouseObserver()
+	gui := ui.Create(makeUI(renderer))
 
 	running := true
 	for running {
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch event.GetType() {
-			case sdl.QUIT:
-				running = false
-				break
-			case sdl.KEYDOWN:
-				keydownEvent := event.(*sdl.KeyboardEvent)
-				if keydownEvent.Keysym.Sym == sdl.K_BACKSPACE {
-					if widget.SelectedSingleLineEdit != nil {
-						widget.SelectedSingleLineEdit.PopText()
-						err = widget.SelectedSingleLineEdit.RerenderText()
-						if err != nil {
-							panic(err)
-						}
-					}
-				}
-				break
-			case sdl.TEXTINPUT:
-				if widget.SelectedSingleLineEdit != nil {
-					widget.SelectedSingleLineEdit.AppendText(event.(*sdl.TextInputEvent).GetText())
-					err = widget.SelectedSingleLineEdit.RerenderText()
-					if err != nil {
-						panic(err)
-					}
-				}
-				break
-			case sdl.TEXTEDITING:
-				break
-			}
-		}
-
-		if event, eventHappened := mObserver.Update(); eventHappened {
-			if event == 1 {
-				basePanel.ClickEvent(mObserver.MousePosition())
-			}
-		}
+		running = gui.PollEvent()
 
 		renderer.SetDrawColor(50, 50, 50, 255)
 		renderer.Clear()
 
-		basePanel.Draw(renderer)
+		gui.Draw(renderer)
 
 		renderer.Present()
 	}

@@ -1,8 +1,6 @@
 package widget
 
 import (
-	"fmt"
-
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -96,7 +94,6 @@ func (me *MultiLineEdit) ClickEvent(mx int32, my int32) bool {
 		if me.lineEdits[i].Contains(mx, my) {
 			if me.lineEdits[i].ClickEvent(mx, my) {
 				SelectedSingleLineEdit = me.lineEdits[i]
-				fmt.Printf("Selected line: %d\n", i)
 				return true
 			}
 		}
