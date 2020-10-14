@@ -124,6 +124,7 @@ func (ta *SingleLineEdit) ClickEvent(mx int32, my int32) bool {
 
 	if ta.Contains(mx, my) && ta.IsClickable() {
 		ta.OnClick()
+		ta.calculateCaretPosition(mx)
 		return true
 	}
 	return false
@@ -197,9 +198,9 @@ func (ta *SingleLineEdit) generateCaretTexture() error {
 	for y := 0; y < int(ta.caretRect.H); y++ {
 		for x := 0; x < int(ta.caretRect.W); x++ {
 			pixels[pixelIdx+0] = 128
-			pixels[pixelIdx+1] = 128
-			pixels[pixelIdx+2] = 128
-			pixels[pixelIdx+3] = 128
+			pixels[pixelIdx+1] = 0
+			pixels[pixelIdx+2] = 0
+			pixels[pixelIdx+3] = 0
 			pixelIdx += 4
 		}
 	}
@@ -213,12 +214,23 @@ func (ta *SingleLineEdit) generateCaretTexture() error {
 	return nil
 }
 
+func (ta *SingleLineEdit) calculateCaretPosition(mx int32) {
+	relX := mx - ta.GetAbsPosition().X
+	idx := int(relX) / ta.charWidth
+	if idx > len(ta.text)-1 {
+		idx = len(ta.text)
+	}
+	ta.caretPosition = idx
+	ta.calculateCaretRect()
+}
+
 func (ta *SingleLineEdit) calculateCaretRect() {
 	absPos := ta.GetAbsPosition()
 
 	x := absPos.X + int32(ta.caretPosition*ta.charWidth)
 	y := absPos.Y + 1
-	w := int32(ta.charWidth)
+	//w := int32(ta.charWidth)
+	w := int32(2)
 	h := absPos.H - 2
 
 	ta.caretRect = sdl.Rect{X: x, Y: y, W: w, H: h}
