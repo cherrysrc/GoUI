@@ -179,7 +179,7 @@ func (ta *SingleLineEdit) AppendText(appendix string) {
 
 //PopText function
 func (ta *SingleLineEdit) PopText() {
-	if len(ta.text) > 0 {
+	if ta.caretPosition > 0 {
 		ta.text = ta.text[:ta.caretPosition-1] + ta.text[ta.caretPosition:]
 		ta.caretPosition--
 		ta.calculateCaretRect()
