@@ -8,9 +8,6 @@ import (
 //TODO proper docs
 //TODO proper encapsulation
 
-//SelectedSingleLineEdit var
-var SelectedSingleLineEdit *SingleLineEdit
-
 //SingleLineEdit struct
 type SingleLineEdit struct {
 	rect        sdl.Rect
@@ -138,7 +135,7 @@ func (ta *SingleLineEdit) IsClickable() bool {
 //OnClick function.
 //Should be empty, if IsClickable returns false, since it will never be called anyways
 func (ta *SingleLineEdit) OnClick() {
-	SelectedSingleLineEdit = ta
+	SelectedTextReceiver = ta
 }
 
 //Draw function. Draws children after itself, to ensure they're draw on top.
@@ -153,7 +150,7 @@ func (ta *SingleLineEdit) Draw(renderer *sdl.Renderer) {
 	offset.W = int32(len(ta.text) * ta.charWidth)
 	renderer.Copy(ta.textTexture, nil, &offset)
 
-	if SelectedSingleLineEdit == ta {
+	if SelectedTextReceiver == ta {
 		renderer.Copy(ta.caretTexture, nil, &ta.caretRect)
 	}
 
@@ -254,6 +251,8 @@ func (ta *SingleLineEdit) RerenderText() error {
 	if err != nil {
 		return err
 	}
+	surface.Free()
+
 	ta.textTexture = texture
 	return nil
 }

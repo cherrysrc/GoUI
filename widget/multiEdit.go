@@ -1,6 +1,9 @@
 package widget
 
 import (
+	"fmt"
+
+	"github.com/cherrysrc/GoUI/util"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -12,30 +15,44 @@ import (
 type MultiLineEdit struct {
 	rect        sdl.Rect
 	baseTexture *sdl.Texture
+	textTexture *sdl.Texture
 
-	lineEdits []*SingleLineEdit
-	lineCount int
-	charWidth int
+	renderer  *sdl.Renderer
+	font      *ttf.Font
 	textColor sdl.Color
 
-	renderer *sdl.Renderer
-	font     *ttf.Font
+	text string
+
+	charWidth     int
+	charHeight    int
+	lineCharLimit int
+	lineCount     int
+
+	caretPosition int
+	caretRect     sdl.Rect
+	caretTexture  *sdl.Texture
 
 	parent   IWidget
 	children []IWidget
 }
 
 //CreateMultiLineEdit function
-func CreateMultiLineEdit(renderer *sdl.Renderer, baseTex *sdl.Texture, rect sdl.Rect, lineCount int, charWidth int, textColor sdl.Color, font *ttf.Font) *MultiLineEdit {
+func CreateMultiLineEdit(renderer *sdl.Renderer, baseTex *sdl.Texture, rect sdl.Rect, charWidth int, charHeight int, textColor sdl.Color, font *ttf.Font) *MultiLineEdit {
 	return &MultiLineEdit{
 		rect,
 		baseTex,
-		make([]*SingleLineEdit, lineCount),
-		lineCount,
-		charWidth,
-		textColor,
+		nil,
 		renderer,
 		font,
+		textColor,
+		"",
+		charWidth,
+		charHeight,
+		int(rect.W) / charWidth,
+		int(rect.H) / charHeight,
+		0,
+		sdl.Rect{},
+		nil,
 		nil,
 		make([]IWidget, 0),
 	}
@@ -69,7 +86,8 @@ func (me *MultiLineEdit) GetAbsPosition() sdl.Rect {
 //SetParent function
 func (me *MultiLineEdit) SetParent(parent IWidget) {
 	me.parent = parent
-	me.generateLines()
+	me.calculateCaretRect()
+	me.generateCaretTexture()
 }
 
 //GetParent function
@@ -90,15 +108,6 @@ func (me *MultiLineEdit) AddChild(child IWidget) {
 
 //ClickEvent function. Checks children first, since they're drawn on top of the parent.
 func (me *MultiLineEdit) ClickEvent(mx int32, my int32) bool {
-	for i := range me.lineEdits {
-		if me.lineEdits[i].Contains(mx, my) {
-			if me.lineEdits[i].ClickEvent(mx, my) {
-				SelectedSingleLineEdit = me.lineEdits[i]
-				return true
-			}
-		}
-	}
-
 	for i := range me.children {
 		if me.children[i].Contains(mx, my) {
 			if me.children[i].ClickEvent(mx, my) {
@@ -109,6 +118,7 @@ func (me *MultiLineEdit) ClickEvent(mx int32, my int32) bool {
 
 	if me.Contains(mx, my) && me.IsClickable() {
 		me.OnClick()
+		me.calculateCaretPosition(mx, my)
 		return true
 	}
 	return false
@@ -122,16 +132,26 @@ func (me *MultiLineEdit) IsClickable() bool {
 //OnClick function.
 //Should be empty, if IsClickable returns false, since it will never be called anyways
 func (me *MultiLineEdit) OnClick() {
+	SelectedTextReceiver = me
 }
 
 //Draw function. Draws children after itself, to ensure they're draw on top.
 func (me *MultiLineEdit) Draw(renderer *sdl.Renderer) {
 	//Child positions are relative to parent
 	offset := me.GetAbsPosition()
-	renderer.Copy(me.baseTexture, nil, &offset)
 
-	for i := range me.lineEdits {
-		me.lineEdits[i].Draw(renderer)
+	if me.baseTexture != nil {
+		renderer.Copy(me.baseTexture, nil, &offset)
+	}
+
+	offset.W = int32(util.Clamp(me.caretPosition*me.charWidth, 0, me.lineCharLimit*me.charWidth))
+	offset.H = int32(me.charHeight + (me.caretPosition/me.lineCharLimit)*me.charHeight)
+	fmt.Println(offset.H)
+
+	renderer.Copy(me.textTexture, nil, &offset)
+
+	if SelectedTextReceiver == me {
+		renderer.Copy(me.caretTexture, nil, &me.caretRect)
 	}
 
 	for i := range me.children {
@@ -140,27 +160,99 @@ func (me *MultiLineEdit) Draw(renderer *sdl.Renderer) {
 }
 
 //---
-//MultiLineEdit specific functions
+//MultiLineEdit only functions
 
-func (me *MultiLineEdit) generateLines() error {
-	absPos := me.GetAbsPosition()
-	linePixelHeight := int(me.rect.H) / me.lineCount
+//AppendText function
+func (me *MultiLineEdit) AppendText(appendix string) {
+	me.text = me.text[:me.caretPosition] + appendix + me.text[me.caretPosition:]
+	me.caretPosition++
+	me.calculateCaretRect()
+}
 
-	for i := range me.lineEdits {
-		x := absPos.X                            //TODO use actual margin
-		y := absPos.Y + int32(i*linePixelHeight) //TODO use actual margin
-		w := absPos.W
-		h := absPos.H / int32(me.lineCount)
+//PopText function
+func (me *MultiLineEdit) PopText() {
+	if me.caretPosition > 0 {
+		me.text = me.text[:me.caretPosition-1] + me.text[me.caretPosition:]
+		me.caretPosition--
+		me.calculateCaretRect()
+	}
+}
 
-		rect := sdl.Rect{X: x, Y: y, W: w, H: h}
-		line, err := CreateSingleLineEdit(me.renderer, rect, nil, me.charWidth, me.textColor, me.font)
-		if err != nil {
-			return err
-		}
-		line.calculateCaretRect()
-		line.generateCaretTexture()
-		me.lineEdits[i] = line
+func (me *MultiLineEdit) generateCaretTexture() error {
+	texture, err := me.renderer.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_STATIC, int32(me.caretRect.W), int32(me.caretRect.H))
+	if err != nil {
+		return err
 	}
 
+	pixels := make([]uint8, me.caretRect.W*me.caretRect.H*4)
+	pixelIdx := 0
+
+	for y := 0; y < int(me.caretRect.H); y++ {
+		for x := 0; x < int(me.caretRect.W); x++ {
+			pixels[pixelIdx+0] = 128
+			pixels[pixelIdx+1] = 0
+			pixels[pixelIdx+2] = 0
+			pixels[pixelIdx+3] = 0
+			pixelIdx += 4
+		}
+	}
+
+	err = texture.Update(nil, pixels, int(me.caretRect.W)*4)
+	if err != nil {
+		return err
+	}
+
+	me.caretTexture = texture
+	return nil
+}
+
+func (me *MultiLineEdit) calculateCaretPosition(mx, my int32) {
+	absPos := me.GetAbsPosition()
+
+	charPosX := int(mx-absPos.X) / me.lineCharLimit
+	charPosY := int(my-absPos.Y) / me.lineCount
+
+	charIdx := charPosX + charPosY*me.lineCharLimit
+	if charIdx > len(me.text)-1 {
+		charIdx = len(me.text)
+	}
+	me.caretPosition = charIdx
+	me.calculateCaretRect()
+}
+
+func (me *MultiLineEdit) calculateCaretRect() {
+	absPos := me.GetAbsPosition()
+
+	charPosX := me.caretPosition % me.lineCharLimit
+	charPosY := me.caretPosition / me.lineCharLimit
+
+	me.caretRect = sdl.Rect{
+		X: absPos.X + int32(me.charWidth*charPosX),
+		Y: absPos.Y + int32(me.charHeight*charPosY),
+		W: int32(2),
+		H: int32(me.charHeight),
+	}
+}
+
+//RerenderText function
+func (me *MultiLineEdit) RerenderText() error {
+	var renderString string
+	if len(me.text) == 0 {
+		renderString = " "
+	} else {
+		renderString = me.text
+	}
+
+	surface, err := me.font.RenderUTF8BlendedWrapped(renderString, me.textColor, int(me.rect.W))
+	if err != nil {
+		return err
+	}
+
+	texture, err := me.renderer.CreateTextureFromSurface(surface)
+	if err != nil {
+		return err
+	}
+
+	me.textTexture = texture
 	return nil
 }

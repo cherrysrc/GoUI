@@ -32,9 +32,9 @@ func (ui *UI) PollEvent() bool {
 		case sdl.KEYDOWN:
 			keydownEvent := event.(*sdl.KeyboardEvent)
 			if keydownEvent.Keysym.Sym == sdl.K_BACKSPACE {
-				if widget.SelectedSingleLineEdit != nil {
-					widget.SelectedSingleLineEdit.PopText()
-					err := widget.SelectedSingleLineEdit.RerenderText()
+				if widget.SelectedTextReceiver != nil {
+					widget.SelectedTextReceiver.PopText()
+					err := widget.SelectedTextReceiver.RerenderText()
 					if err != nil {
 						panic(err)
 					}
@@ -42,9 +42,9 @@ func (ui *UI) PollEvent() bool {
 			}
 			break
 		case sdl.TEXTINPUT:
-			if widget.SelectedSingleLineEdit != nil {
-				widget.SelectedSingleLineEdit.AppendText(event.(*sdl.TextInputEvent).GetText())
-				err := widget.SelectedSingleLineEdit.RerenderText()
+			if widget.SelectedTextReceiver != nil {
+				widget.SelectedTextReceiver.AppendText(event.(*sdl.TextInputEvent).GetText())
+				err := widget.SelectedTextReceiver.RerenderText()
 				if err != nil {
 					panic(err)
 				}

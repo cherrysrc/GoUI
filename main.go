@@ -136,7 +136,7 @@ func makeUI(renderer *sdl.Renderer) widget.IWidget {
 	if err != nil {
 		panic(err)
 	}
-	meEdit := widget.CreateMultiLineEdit(renderer, meTexture, meEditRect, 8, 20, sdl.Color{0, 0, 0, 255}, font)
+	meEdit := widget.CreateMultiLineEdit(renderer, meTexture, meEditRect, 40, 80, sdl.Color{0, 0, 0, 255}, font)
 
 	basePanel.AddChild(rightPanel)
 	rightPanel.AddChild(meEdit)

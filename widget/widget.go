@@ -5,6 +5,9 @@ import "github.com/veandco/go-sdl2/sdl"
 //TODO proper docs
 //TODO encapsulation
 
+//SelectedTextReceiver var
+var SelectedTextReceiver ITextReceiver
+
 //IWidget interface
 type IWidget interface {
 	GetRect() sdl.Rect
@@ -23,4 +26,11 @@ type IWidget interface {
 	OnClick()
 
 	Draw(*sdl.Renderer)
+}
+
+//ITextReceiver interface
+type ITextReceiver interface {
+	AppendText(string)
+	PopText()
+	RerenderText() error
 }
