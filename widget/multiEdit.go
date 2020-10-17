@@ -218,14 +218,15 @@ func (me *MultiLineEdit) generateCaretTexture() error {
 func (me *MultiLineEdit) calculateCaretPosition(mx, my int32) {
 	absPos := me.GetAbsPosition()
 
-	charPosX := int(mx-absPos.X) / me.lineCharLimit
-	charPosY := int(my-absPos.Y) / me.lineCount
+	charPosX := int(mx-absPos.X) / me.charWidth
+	charPosY := int(my-absPos.Y) / me.charHeight
 
 	charIdx := charPosX + charPosY*me.lineCharLimit
 	if charIdx > len(me.text)-1 {
 		charIdx = len(me.text)
 	}
 	me.caretPosition = charIdx
+
 	me.calculateCaretRect()
 }
 
