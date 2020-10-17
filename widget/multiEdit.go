@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cherrysrc/GoUI/util"
+
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -15,7 +16,9 @@ import (
 type MultiLineEdit struct {
 	rect        sdl.Rect
 	baseTexture *sdl.Texture
-	textTexture *sdl.Texture
+
+	textLineTextures []*sdl.Texture
+	lineLengths      []int
 
 	renderer  *sdl.Renderer
 	font      *ttf.Font
@@ -41,7 +44,8 @@ func CreateMultiLineEdit(renderer *sdl.Renderer, baseTex *sdl.Texture, rect sdl.
 	return &MultiLineEdit{
 		rect,
 		baseTex,
-		nil,
+		make([]*sdl.Texture, int(rect.H)/charHeight),
+		make([]int, int(rect.H)/charHeight),
 		renderer,
 		font,
 		textColor,
@@ -144,11 +148,14 @@ func (me *MultiLineEdit) Draw(renderer *sdl.Renderer) {
 		renderer.Copy(me.baseTexture, nil, &offset)
 	}
 
-	offset.W = int32(util.Clamp(me.caretPosition*me.charWidth, 0, me.lineCharLimit*me.charWidth))
-	offset.H = int32(me.charHeight + (me.caretPosition/me.lineCharLimit)*me.charHeight)
-	fmt.Println(offset.H)
+	offset.H = int32(me.charHeight)
+	fmt.Printf("%s - %d,%d\n", me.text, offset.W, offset.H)
 
-	renderer.Copy(me.textTexture, nil, &offset)
+	for lineTexIdx := range me.textLineTextures {
+		offset.W = int32(me.lineLengths[lineTexIdx] * me.charWidth)
+		renderer.Copy(me.textLineTextures[lineTexIdx], nil, &offset)
+		offset.Y += int32(me.charHeight)
+	}
 
 	if SelectedTextReceiver == me {
 		renderer.Copy(me.caretTexture, nil, &me.caretRect)
@@ -236,23 +243,35 @@ func (me *MultiLineEdit) calculateCaretRect() {
 
 //RerenderText function
 func (me *MultiLineEdit) RerenderText() error {
-	var renderString string
-	if len(me.text) == 0 {
-		renderString = " "
-	} else {
-		renderString = me.text
+	lines := util.Chunks(me.text, me.lineCharLimit)
+
+	for lineIdx := range me.textLineTextures {
+		if lineIdx >= len(lines) {
+			me.textLineTextures[lineIdx] = nil
+			continue
+		}
+
+		var renderString string
+		if len(lines[lineIdx]) == 0 {
+			renderString = " "
+		} else {
+			renderString = lines[lineIdx]
+		}
+
+		surface, err := me.font.RenderUTF8Blended(renderString, me.textColor)
+		if err != nil {
+			return err
+		}
+
+		texture, err := me.renderer.CreateTextureFromSurface(surface)
+		if err != nil {
+			return err
+		}
+		surface.Free()
+
+		me.textLineTextures[lineIdx] = texture
+		me.lineLengths[lineIdx] = len(lines[lineIdx])
 	}
 
-	surface, err := me.font.RenderUTF8BlendedWrapped(renderString, me.textColor, int(me.rect.W))
-	if err != nil {
-		return err
-	}
-
-	texture, err := me.renderer.CreateTextureFromSurface(surface)
-	if err != nil {
-		return err
-	}
-
-	me.textTexture = texture
 	return nil
 }

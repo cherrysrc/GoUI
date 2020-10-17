@@ -40,6 +40,15 @@ func (ui *UI) PollEvent() bool {
 					}
 				}
 			}
+			// } else if keydownEvent.Keysym.Sym == sdl.K_KP_ENTER {
+			// 	if widget.SelectedTextReceiver != nil {
+			// 		widget.SelectedTextReceiver.AppendText("\n")
+			// 		err := widget.SelectedTextReceiver.RerenderText()
+			// 		if err != nil {
+			// 			panic(err)
+			// 		}
+			// 	}
+			// }
 			break
 		case sdl.TEXTINPUT:
 			if widget.SelectedTextReceiver != nil {
