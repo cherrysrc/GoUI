@@ -1,8 +1,6 @@
 package widget
 
 import (
-	"fmt"
-
 	"github.com/cherrysrc/GoUI/util"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -41,19 +39,21 @@ type MultiLineEdit struct {
 
 //CreateMultiLineEdit function
 func CreateMultiLineEdit(renderer *sdl.Renderer, baseTex *sdl.Texture, rect sdl.Rect, charWidth int, charHeight int, textColor sdl.Color, font *ttf.Font) *MultiLineEdit {
+	charLimitX := int(rect.W) / charWidth
+	charLimitY := int(rect.H) / charHeight
 	return &MultiLineEdit{
 		rect,
 		baseTex,
-		make([]*sdl.Texture, int(rect.H)/charHeight),
-		make([]int, int(rect.H)/charHeight),
+		make([]*sdl.Texture, charLimitY),
+		make([]int, charLimitY),
 		renderer,
 		font,
 		textColor,
 		"",
 		charWidth,
 		charHeight,
-		int(rect.W) / charWidth,
-		int(rect.H) / charHeight,
+		charLimitX,
+		charLimitY,
 		0,
 		sdl.Rect{},
 		nil,
@@ -149,7 +149,6 @@ func (me *MultiLineEdit) Draw(renderer *sdl.Renderer) {
 	}
 
 	offset.H = int32(me.charHeight)
-	fmt.Printf("%s - %d,%d\n", me.text, offset.W, offset.H)
 
 	for lineTexIdx := range me.textLineTextures {
 		offset.W = int32(me.lineLengths[lineTexIdx] * me.charWidth)
@@ -171,6 +170,9 @@ func (me *MultiLineEdit) Draw(renderer *sdl.Renderer) {
 
 //AppendText function
 func (me *MultiLineEdit) AppendText(appendix string) {
+	if len(me.text) >= me.lineCharLimit*me.lineCount {
+		return
+	}
 	me.text = me.text[:me.caretPosition] + appendix + me.text[me.caretPosition:]
 	me.caretPosition++
 	me.calculateCaretRect()
