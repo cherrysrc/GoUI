@@ -21,6 +21,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	renderer.SetDrawBlendMode(sdl.BLENDMODE_ADD)
 
 	err = ttf.Init()
 	if err != nil {

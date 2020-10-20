@@ -30,7 +30,6 @@ type MultiLineEdit struct {
 
 	caretPosition int
 	caretRect     sdl.Rect
-	caretTexture  *sdl.Texture
 
 	parent   IWidget
 	children []IWidget
@@ -55,7 +54,6 @@ func CreateMultiLineEdit(renderer *sdl.Renderer, baseTex *sdl.Texture, rect sdl.
 		charLimitY,
 		0,
 		sdl.Rect{},
-		nil,
 		nil,
 		make([]IWidget, 0),
 	}
@@ -90,7 +88,6 @@ func (me *MultiLineEdit) GetAbsPosition() sdl.Rect {
 func (me *MultiLineEdit) SetParent(parent IWidget) {
 	me.parent = parent
 	me.calculateCaretRect()
-	me.generateCaretTexture()
 }
 
 //GetParent function
@@ -156,7 +153,8 @@ func (me *MultiLineEdit) Draw(renderer *sdl.Renderer) {
 	}
 
 	if SelectedTextReceiver == me {
-		renderer.Copy(me.caretTexture, nil, &me.caretRect)
+		renderer.SetDrawColor(255, 255, 255, 64)
+		renderer.FillRect(&me.caretRect)
 	}
 
 	for i := range me.children {
@@ -195,34 +193,6 @@ func (me *MultiLineEdit) EnterPressed() {
 	}
 }
 
-func (me *MultiLineEdit) generateCaretTexture() error {
-	texture, err := me.renderer.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_STATIC, int32(me.caretRect.W), int32(me.caretRect.H))
-	if err != nil {
-		return err
-	}
-
-	pixels := make([]uint8, me.caretRect.W*me.caretRect.H*4)
-	pixelIdx := 0
-
-	for y := 0; y < int(me.caretRect.H); y++ {
-		for x := 0; x < int(me.caretRect.W); x++ {
-			pixels[pixelIdx+0] = 128
-			pixels[pixelIdx+1] = 0
-			pixels[pixelIdx+2] = 0
-			pixels[pixelIdx+3] = 0
-			pixelIdx += 4
-		}
-	}
-
-	err = texture.Update(nil, pixels, int(me.caretRect.W)*4)
-	if err != nil {
-		return err
-	}
-
-	me.caretTexture = texture
-	return nil
-}
-
 func (me *MultiLineEdit) calculateCaretPosition(mx, my int32) {
 	absPos := me.GetAbsPosition()
 
@@ -246,9 +216,9 @@ func (me *MultiLineEdit) calculateCaretRect() {
 
 	me.caretRect = sdl.Rect{
 		X: absPos.X + int32(me.charWidth*charPosX),
-		Y: absPos.Y + int32(me.charHeight*charPosY),
-		W: int32(2),
-		H: int32(me.charHeight),
+		Y: absPos.Y + int32(me.charHeight*charPosY) + 2,
+		W: int32(me.charWidth),
+		H: int32(me.charHeight - 2),
 	}
 }
 

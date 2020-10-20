@@ -23,7 +23,6 @@ type SingleLineEdit struct {
 
 	caretPosition int
 	caretRect     sdl.Rect
-	caretTexture  *sdl.Texture
 
 	parent   IWidget
 	children []IWidget
@@ -53,7 +52,6 @@ func CreateSingleLineEdit(renderer *sdl.Renderer, rect sdl.Rect, baseTexture *sd
 		charWidth,
 		0,
 		sdl.Rect{},
-		nil,
 		nil,
 		make([]IWidget, 0),
 	}
@@ -90,7 +88,6 @@ func (ta *SingleLineEdit) GetAbsPosition() sdl.Rect {
 func (ta *SingleLineEdit) SetParent(parent IWidget) {
 	ta.parent = parent
 	ta.calculateCaretRect()
-	ta.generateCaretTexture()
 }
 
 //GetParent function
@@ -151,7 +148,8 @@ func (ta *SingleLineEdit) Draw(renderer *sdl.Renderer) {
 	renderer.Copy(ta.textTexture, nil, &offset)
 
 	if SelectedTextReceiver == ta {
-		renderer.Copy(ta.caretTexture, nil, &ta.caretRect)
+		renderer.SetDrawColor(255, 255, 255, 64)
+		renderer.FillRect(&ta.caretRect)
 	}
 
 	for i := range ta.children {
@@ -188,34 +186,6 @@ func (ta *SingleLineEdit) EnterPressed() {
 	return
 }
 
-func (ta *SingleLineEdit) generateCaretTexture() error {
-	texture, err := ta.renderer.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_STATIC, int32(ta.caretRect.W), int32(ta.caretRect.H))
-	if err != nil {
-		return err
-	}
-
-	pixels := make([]uint8, ta.caretRect.W*ta.caretRect.H*4)
-	pixelIdx := 0
-
-	for y := 0; y < int(ta.caretRect.H); y++ {
-		for x := 0; x < int(ta.caretRect.W); x++ {
-			pixels[pixelIdx+0] = 128
-			pixels[pixelIdx+1] = 0
-			pixels[pixelIdx+2] = 0
-			pixels[pixelIdx+3] = 0
-			pixelIdx += 4
-		}
-	}
-
-	err = texture.Update(nil, pixels, int(ta.caretRect.W)*4)
-	if err != nil {
-		return err
-	}
-
-	ta.caretTexture = texture
-	return nil
-}
-
 func (ta *SingleLineEdit) calculateCaretPosition(mx int32) {
 	relX := mx - ta.GetAbsPosition().X
 	idx := int(relX) / ta.charWidth
@@ -232,7 +202,7 @@ func (ta *SingleLineEdit) calculateCaretRect() {
 	x := absPos.X + int32(ta.caretPosition*ta.charWidth)
 	y := absPos.Y + 1
 	//w := int32(ta.charWidth)
-	w := int32(2)
+	w := int32(ta.charWidth)
 	h := absPos.H - 2
 
 	ta.caretRect = sdl.Rect{X: x, Y: y, W: w, H: h}
