@@ -32,5 +32,6 @@ type IWidget interface {
 type ITextReceiver interface {
 	AppendText(string)
 	PopText()
+	EnterPressed()
 	RerenderText() error
 }

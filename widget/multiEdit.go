@@ -2,7 +2,6 @@ package widget
 
 import (
 	"github.com/cherrysrc/GoUI/util"
-
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -184,6 +183,15 @@ func (me *MultiLineEdit) PopText() {
 		me.text = me.text[:me.caretPosition-1] + me.text[me.caretPosition:]
 		me.caretPosition--
 		me.calculateCaretRect()
+	}
+}
+
+//EnterPressed function
+//TODO less hacky solution
+func (me *MultiLineEdit) EnterPressed() {
+	charsLeft := me.lineCharLimit - (me.caretPosition % me.lineCharLimit)
+	for i := 0; i < charsLeft; i++ {
+		me.AppendText(" ")
 	}
 }
 

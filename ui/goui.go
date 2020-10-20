@@ -39,6 +39,10 @@ func (ui *UI) PollEvent() bool {
 						panic(err)
 					}
 				}
+			} else if keydownEvent.Keysym.Sym == sdl.K_RETURN {
+				if widget.SelectedTextReceiver != nil {
+					widget.SelectedTextReceiver.EnterPressed()
+				}
 			}
 			break
 		case sdl.TEXTINPUT:

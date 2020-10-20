@@ -183,6 +183,11 @@ func (ta *SingleLineEdit) PopText() {
 	}
 }
 
+//EnterPressed function
+func (ta *SingleLineEdit) EnterPressed() {
+	return
+}
+
 func (ta *SingleLineEdit) generateCaretTexture() error {
 	texture, err := ta.renderer.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_STATIC, int32(ta.caretRect.W), int32(ta.caretRect.H))
 	if err != nil {
