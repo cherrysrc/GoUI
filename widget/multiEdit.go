@@ -193,6 +193,42 @@ func (me *MultiLineEdit) EnterPressed() {
 	}
 }
 
+//MoveCaretRight function
+func (me *MultiLineEdit) MoveCaretRight() {
+	me.caretPosition++
+	me.caretBounds()
+	me.calculateCaretRect()
+}
+
+//MoveCaretLeft function
+func (me *MultiLineEdit) MoveCaretLeft() {
+	me.caretPosition--
+	me.caretBounds()
+	me.calculateCaretRect()
+}
+
+//MoveCaretUp function
+func (me *MultiLineEdit) MoveCaretUp() {
+	me.caretPosition -= me.lineCharLimit
+	me.caretBounds()
+	me.calculateCaretRect()
+}
+
+//MoveCaretDown function
+func (me *MultiLineEdit) MoveCaretDown() {
+	me.caretPosition += me.lineCharLimit
+	me.caretBounds()
+	me.calculateCaretRect()
+}
+
+func (me *MultiLineEdit) caretBounds() {
+	if me.caretPosition < 0 {
+		me.caretPosition = 0
+	} else if me.caretPosition >= len(me.text) {
+		me.caretPosition = len(me.text)
+	}
+}
+
 func (me *MultiLineEdit) calculateCaretPosition(mx, my int32) {
 	absPos := me.GetAbsPosition()
 

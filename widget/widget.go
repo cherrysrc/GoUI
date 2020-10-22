@@ -32,6 +32,13 @@ type IWidget interface {
 type ITextReceiver interface {
 	AppendText(string)
 	PopText()
+
 	EnterPressed()
+
+	MoveCaretRight()
+	MoveCaretLeft()
+	MoveCaretUp()
+	MoveCaretDown()
+
 	RerenderText() error
 }

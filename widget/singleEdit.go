@@ -186,6 +186,36 @@ func (ta *SingleLineEdit) EnterPressed() {
 	return
 }
 
+//MoveCaretRight function
+func (ta *SingleLineEdit) MoveCaretRight() {
+	ta.caretPosition++
+	ta.caretBounds()
+	ta.calculateCaretRect()
+}
+
+//MoveCaretLeft function
+func (ta *SingleLineEdit) MoveCaretLeft() {
+	ta.caretPosition--
+	ta.caretBounds()
+	ta.calculateCaretRect()
+}
+
+//MoveCaretUp function
+func (ta *SingleLineEdit) MoveCaretUp() {
+}
+
+//MoveCaretDown function
+func (ta *SingleLineEdit) MoveCaretDown() {
+}
+
+func (ta *SingleLineEdit) caretBounds() {
+	if ta.caretPosition < 0 {
+		ta.caretPosition = 0
+	} else if ta.caretPosition >= len(ta.text) {
+		ta.caretPosition = len(ta.text)
+	}
+}
+
 func (ta *SingleLineEdit) calculateCaretPosition(mx int32) {
 	relX := mx - ta.GetAbsPosition().X
 	idx := int(relX) / ta.charWidth

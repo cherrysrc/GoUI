@@ -43,6 +43,14 @@ func (ui *UI) PollEvent() bool {
 				if widget.SelectedTextReceiver != nil {
 					widget.SelectedTextReceiver.EnterPressed()
 				}
+			} else if keydownEvent.Keysym.Sym == sdl.K_LEFT {
+				widget.SelectedTextReceiver.MoveCaretLeft()
+			} else if keydownEvent.Keysym.Sym == sdl.K_RIGHT {
+				widget.SelectedTextReceiver.MoveCaretRight()
+			} else if keydownEvent.Keysym.Sym == sdl.K_UP {
+				widget.SelectedTextReceiver.MoveCaretUp()
+			} else if keydownEvent.Keysym.Sym == sdl.K_DOWN {
+				widget.SelectedTextReceiver.MoveCaretDown()
 			}
 			break
 		case sdl.TEXTINPUT:
