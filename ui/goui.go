@@ -42,15 +42,24 @@ func (ui *UI) PollEvent() bool {
 			} else if keydownEvent.Keysym.Sym == sdl.K_RETURN {
 				if widget.SelectedTextReceiver != nil {
 					widget.SelectedTextReceiver.EnterPressed()
+					widget.SelectedTextReceiver.RerenderText()
 				}
 			} else if keydownEvent.Keysym.Sym == sdl.K_LEFT {
-				widget.SelectedTextReceiver.MoveCaretLeft()
+				if widget.SelectedTextReceiver != nil {
+					widget.SelectedTextReceiver.MoveCaretLeft()
+				}
 			} else if keydownEvent.Keysym.Sym == sdl.K_RIGHT {
-				widget.SelectedTextReceiver.MoveCaretRight()
+				if widget.SelectedTextReceiver != nil {
+					widget.SelectedTextReceiver.MoveCaretRight()
+				}
 			} else if keydownEvent.Keysym.Sym == sdl.K_UP {
-				widget.SelectedTextReceiver.MoveCaretUp()
+				if widget.SelectedTextReceiver != nil {
+					widget.SelectedTextReceiver.MoveCaretUp()
+				}
 			} else if keydownEvent.Keysym.Sym == sdl.K_DOWN {
-				widget.SelectedTextReceiver.MoveCaretDown()
+				if widget.SelectedTextReceiver != nil {
+					widget.SelectedTextReceiver.MoveCaretDown()
+				}
 			}
 			break
 		case sdl.TEXTINPUT:
